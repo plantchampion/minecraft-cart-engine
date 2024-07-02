@@ -110,6 +110,7 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
 
         final double tps = 20.;
         final double maxSpeed = 34. / tps;
+        final double maxSpeedAtBallast = 70. / tps;
         final double maxMomentum = maxSpeed * 5.;
         final double vanillaMaxSpeed = 8. / tps;
         final double vanillaMaxMomentum = 40. / tps;
@@ -138,6 +139,11 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
         if (this.isInWater()) {
             g *= 0.2D;
         }
+
+        // Check if ground block is Gravel
+        BlockPos currentPos = this.blockPosition();
+        boolean onBallast = level.getBlockState(currentPos.below()).is(Blocks.GRAVEL);
+        
 
         Vec3 momentum = this.getDeltaMovement();
         RailShape railShape = getRailShape(state);
@@ -298,7 +304,7 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
 
             double checkFactor = (isDiagonal || isAscending) ? 2. : 1.;
             final int cutoffPoint = 3;
-            int sizeToCheck = (int)(2 * (cutoffPoint + (checkFactor * maxSpeed)));
+            int sizeToCheck = (int)(2 * (cutoffPoint + (checkFactor * maxSpeedAtBallast)));
             sizeToCheck -= (sizeToCheck % 2);
 
             while (!newNeighbors.isEmpty() && adjRailPositions.size() < sizeToCheck) {
@@ -335,10 +341,14 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
             return (cutoffSpeedPerSec + ((20. / checkFactor) * railCountPastBegin)) / tps;
         };
 
-        double maxSpeedForThisTick = Math.min(calculateMaxSpeedForThisTick.get(), maxSpeed);
+        double maxSpeedForThisTick = Math.min(calculateMaxSpeedForThisTick.get(), maxSpeedAtBallast);
+
         if (isDiagonal || isAscending) {
             // Diagonal and Ascending/Descending is 1.4142 times faster, we correct this here
             maxSpeedForThisTick = Math.min(maxSpeedForThisTick, 0.7071 * maxSpeed);
+        }
+        else if (!onBallast){
+            maxSpeedForThisTick = Math.min(maxSpeedForThisTick, maxSpeed);
         }
 
         Entity entity = this.getFirstPassenger();
