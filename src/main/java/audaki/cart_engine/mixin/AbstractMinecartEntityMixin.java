@@ -38,6 +38,12 @@ import java.util.function.Supplier;
  So we stay with extends Entity for now
  */
 
+/*
+Fork by PlantChampion
+
+Attempt to incorporate Highspeed Rail gravel speed boost by taya / pcal43
+*/
+
 @Mixin(AbstractMinecart.class)
 public abstract class AbstractMinecartEntityMixin extends Entity {
     
